@@ -125,19 +125,30 @@ function drawTrain(tr, line) {
   if (!path) return;
   const sign = line.loop ? 1 : tr.dir;
 
+  // 每节车厢的座位数 = 单节运力；横向座位间距 7.5px，纵向两排留 1.2px 缝隙，四周留边距
+  const per = G.carrCap;
+  const cols = Math.ceil(per / 2), rows = Math.ceil(per / cols);
+  const pr = 3;
+  const len = Math.max(30, (cols - 1) * 7.5 + 15);  // 默认 6 座 → 30px；墨尔本 9 座 → 45px
+  const gapX = 7.5;
+  const gapY = rows > 1 ? 7.2 : 0;                                // > 图标直径 6，上下排不贴
+  const pitch = len - 5;                       // 车厢节距：保持原来的 5px 重叠感
+
   // 从最后一节车厢往前画，保证车头盖在最上层
   for (let k = tr.carriages; k >= 0; k--) {
-    const p = pointAt(path, tr.d - sign * k * 17);
+    const p = pointAt(path, tr.d - sign * k * pitch);
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.ang);
-    rr(-11, -6, 22, 12, 6);
+    rr(-len / 2, -9, len, 18, 9);
     ctx.fillStyle = '#fff'; ctx.fill();
     ctx.lineWidth = 2.4; ctx.strokeStyle = INK; ctx.stroke();
-    const slice = tr.passengers.slice(k * 6, k * 6 + 6);
+    const slice = tr.passengers.slice(k * per, k * per + per);
     slice.forEach((pg, i) => {
-      const ix = -6.2 + (i % 3) * 6.2, iy = i < 3 ? -2.6 : 2.6;
-      shapePath(pg.shape, ix, iy, 2.3);
+      const ix = (i % cols - (cols - 1) / 2) * gapX;
+      const iy = (Math.floor(i / cols) - (rows - 1) / 2) * gapY;
+      // 三角形是外接圆画法，面积只有同半径圆的 ~40%，补偿放大避免显小
+      shapePath(pg.shape, ix, iy, pg.shape === 'triangle' ? pr * 1.35 : pr);
       ctx.fillStyle = INK; ctx.fill();
     });
     ctx.restore();
