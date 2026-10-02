@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>迷你地铁 · Mini Metro</title>
+
+<!-- 本地化第三方依赖（离线可用，无需联网；来源见 vendor/README.md） -->
+<link rel="stylesheet" href="./vendor/nunito.css">
+<script src="./vendor/tailwind-browser.js"></script>
+<script src="./vendor/lucide.min.js"></script>
+
+<!-- 本地样式 -->
+<link rel="stylesheet" href="./src/styles/base.css">
+<link rel="stylesheet" href="./src/styles/hud.css">
+<link rel="stylesheet" href="./src/styles/modal.css">
+</head>
+<body>
+
+<!-- 主画布：所有游戏内容都在这张 Canvas 上绘制 -->
+<canvas id="game"></canvas>
+
+<!-- 左上角：日期 / 周 / 运送量 -->
+<div class="fixed top-3 left-3 z-20 pointer-events-none">
+  <div class="card flex items-center gap-3 px-4 py-2.5">
+    <canvas id="pie" width="80" height="80" class="w-9 h-9"></canvas>
+    <div>
+      <div id="dayLabel" class="font-black text-lg leading-5">第 1 天</div>
+      <div id="weekLabel" class="text-xs opacity-50 font-bold">第 1 周</div>
+    </div>
+    <div class="w-px self-stretch bg-black/10 mx-1"></div>
+    <div class="flex items-center gap-1.5" title="已运送乘客">
+      <i data-lucide="users" class="w-4 h-4 opacity-60"></i>
+      <span id="delivered" class="font-black text-lg">0</span>
+    </div>
+  </div>
+</div>
+
+<!-- 右上角：控制按钮 -->
+<div class="fixed top-3 right-3 z-20 flex gap-2">
+  <button id="btnPause" class="card hbtn" title="暂停（空格）"><i data-lucide="pause" class="w-5 h-5"></i></button>
+  <button id="btnSpeed" class="card hbtn font-black text-sm" title="加速（F）">1×</button>
+  <button id="btnMute" class="card hbtn" title="声音（M）"><i data-lucide="volume-2" class="w-5 h-5"></i></button>
+</div>
+
+<!-- 顶部提示 -->
+<div id="hint" class="fixed top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
+  <div class="card px-4 py-2 text-[13px] font-bold opacity-90 whitespace-nowrap">按住车站并拖拽到另一座车站，开通第一条线路</div>
+</div>
+
+<!-- 底部：线路 + 库存 -->
+<div class="fixed bottom-3 left-1/2 -translate-x-1/2 z-20 max-w-[96vw]">
+  <div class="card flex items-center gap-3 px-4 py-2.5">
+    <div id="chips" class="flex items-center gap-2 overflow-x-auto max-w-[62vw] py-0.5"></div>
+    <div class="w-px self-stretch bg-black/10"></div>
+    <div class="flex items-center gap-3 text-sm font-black whitespace-nowrap">
+      <span class="flex items-center gap-1" title="隧道（跨河修线需要）"><i data-lucide="mountain" class="w-4 h-4 opacity-60"></i>×<span id="invTunnels">3</span></span>
+      <span class="flex items-center gap-1" title="备用列车"><i data-lucide="train-front" class="w-4 h-4 opacity-60"></i>×<span id="invLocos">3</span></span>
+      <span class="flex items-center gap-1" title="备用车厢"><i data-lucide="layers" class="w-4 h-4 opacity-60"></i>×<span id="invCars">0</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- 提示气泡 -->
+<div id="toast" class="fixed left-1/2 top-[30%] -translate-x-1/2 z-40 pointer-events-none opacity-0">
+  <div class="card px-5 py-2.5 font-black text-sm" style="color:#c2402f"></div>
+</div>
+
+<!-- 弹窗层（由 src/js/ui/modal.js 动态填充） -->
+<div id="modal"></div>
+
+<!-- 游戏脚本：按依赖顺序加载（经典 script，非 ES Module）
+     用普通 <script> 而非 type="module"，是为了让 file:// 双击也能运行 ——
+     浏览器会以 CORS 拦截 file:// 下的外部 ES Module，普通脚本则不受限。
+     顺序约束：① 被共享的声明（ctx / W / H / G）先出现；② storage/river/maps
+     要在 state.js 之前（reset 依赖 setRiverLayout 与 MAPS）；③ main.js 最后。
+     模块间存在循环引用，但跨文件读取都发生在函数体内，故中段顺序可换。
+     新增模块请插到合适位置，详见 README「命名与加载顺序」。 -->
+  <script src="./src/js/core/viewport.js"></script>
+  <script src="./src/js/core/storage.js"></script>
+  <script src="./src/js/world/river.js"></script>
+  <script src="./src/js/world/maps.js"></script>
+  <script src="./src/js/core/state.js"></script>
+  <script src="./src/js/utils.js"></script>
+  <script src="./src/js/config.js"></script>
+  <script src="./src/js/core/audio.js"></script>
+  <script src="./src/js/world/floaters.js"></script>
+  <script src="./src/js/world/station.js"></script>
+  <script src="./src/js/world/line.js"></script>
+  <script src="./src/js/world/train.js"></script>
+  <script src="./src/js/world/simulate.js"></script>
+  <script src="./src/js/input/pointer.js"></script>
+  <script src="./src/js/ui/hud.js"></script>
+  <script src="./src/js/ui/modal.js"></script>
+  <script src="./src/js/ui/controls.js"></script>
+  <script src="./src/js/render/primitives.js"></script>
+  <script src="./src/js/render/scene.js"></script>
+  <script src="./src/js/core/loop.js"></script>
+  <script src="./src/js/main.js"></script>
+
+</body>
+</html>

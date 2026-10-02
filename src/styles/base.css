@@ -1,0 +1,17 @@
+/* 全局基础：页面与画布 */
+html, body { height: 100%; }
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: #f5f2ea;
+  color: #33302b;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}

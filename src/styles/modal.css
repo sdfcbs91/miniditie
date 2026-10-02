@@ -1,0 +1,122 @@
+/* 弹窗：开场介绍、每周升级、游戏结束 */
+
+.modal-mask {
+  position: fixed;
+  inset: 0;
+  background: rgba(53, 50, 44, .38);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 16px;
+}
+
+@keyframes pop {
+  from { transform: scale(.92) translateY(10px); opacity: 0 }
+  to   { transform: scale(1) translateY(0); opacity: 1 }
+}
+.pop { animation: pop .3s cubic-bezier(.2, 1.4, .4, 1); }
+
+/* 升级选项按钮 */
+.optbtn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 2px solid rgba(60, 50, 30, .12);
+  background: rgba(255, 255, 255, .7);
+  cursor: pointer;
+  transition: all .13s ease;
+}
+.optbtn:hover {
+  border-color: #33302b;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(60, 50, 30, .12);
+}
+.optic {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex: none;
+}
+
+/* ---------------- 主菜单入口按钮 ---------------- */
+.menubtn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 2px solid rgba(60, 50, 30, .12);
+  background: rgba(255, 255, 255, .7);
+  cursor: pointer;
+  transition: all .13s ease;
+}
+.menubtn:hover {
+  border-color: #33302b;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(60, 50, 30, .12);
+}
+.menubic {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex: none;
+}
+
+/* ---------------- 城市选择卡片 ---------------- */
+.mapgrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+@media (max-width: 560px) {
+  .mapgrid { grid-template-columns: repeat(2, 1fr); }
+}
+.mapcard {
+  position: relative;
+  text-align: center;
+  padding: 0 12px 12px;
+  border-radius: 16px;
+  border: 2px solid rgba(60, 50, 30, .12);
+  background: rgba(255, 255, 255, .7);
+  cursor: pointer;
+  transition: all .13s ease;
+  overflow: hidden;
+}
+.mapcard:hover {
+  border-color: #33302b;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(60, 50, 30, .12);
+}
+.mapcard.locked { opacity: .55; cursor: not-allowed; }
+.mapcard.locked:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: rgba(60, 50, 30, .12);
+}
+.mapbar { height: 6px; margin: 0 -12px 4px; }   /* 顶部色条，贴住卡片上缘 */
+.maplocktext {
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  color: #b0552f;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}

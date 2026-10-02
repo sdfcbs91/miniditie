@@ -1,0 +1,80 @@
+/* HUD：顶部状态卡、按钮、线路牌、提示条 */
+
+.card {
+  background: rgba(255, 255, 255, .85);
+  backdrop-filter: blur(10px);
+  border-radius: 18px;
+  border: 1px solid rgba(60, 50, 30, .09);
+  box-shadow: 0 8px 28px rgba(60, 50, 30, .10);
+}
+
+.hbtn {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform .12s ease;
+}
+.hbtn:hover  { transform: scale(1.07); }
+.hbtn:active { transform: scale(.94); }
+
+/* 底部线路牌 */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 9px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, .75);
+  border: 1px solid rgba(60, 50, 30, .12);
+  white-space: nowrap;
+}
+.cdot {
+  width: 14px;
+  height: 14px;
+  border-radius: 99px;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35);
+  flex: none;
+}
+/* 列车小图标 */
+.capic {
+  width: 15px;
+  height: 9px;
+  border-radius: 99px;
+  background: #fff;
+  border: 2px solid #33302b;
+  display: inline-block;
+  flex: none;
+}
+.chipbtn {
+  font-size: 10px;
+  line-height: 1;
+  padding: 5px 7px;
+  border-radius: 8px;
+  background: #33302b;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .1s;
+}
+.chipbtn:hover { transform: scale(1.08); }
+.chipbtn.ghost {
+  background: transparent;
+  color: #33302b;
+  border: 1px solid rgba(60, 50, 30, .25);
+}
+/* 未使用线路的空位占位点 */
+.emptydot {
+  width: 13px;
+  height: 13px;
+  border-radius: 99px;
+  border: 2px dashed rgba(60, 50, 30, .35);
+  flex: none;
+}
+
+/* 提示条 / 气泡 */
+#toast { transition: opacity .3s ease; }
+#hint  { transition: opacity .6s ease; }
