@@ -15,7 +15,7 @@
 /* ← 依赖 ../world/river.js （提供 RIVERS, riverCenterAt, riverHalfPx, segCrosses） */
 /* ← 依赖 ../world/line.js （提供 pointAt, handlePos） */
 /* ← 依赖 ../world/floaters.js （提供 drawFloaters） */
-/* ← 依赖 ../input/pointer.js （提供 editing, hoverHandle） */
+/* ← 依赖 ../input/pointer.js （提供 editing, hoverHandle, hoverSeg） */
 /* ← 依赖 ./primitives.js （提供 shapePath, rr） */
 
 /* ---------------- 背景 ---------------- */
@@ -161,8 +161,9 @@ function drawHandles() {
   }
 }
 
-/** 拖拽建线 / 改线时的实时预览 */
+/** 拖拽建线 / 改线 / 线段插入时的实时预览 */
 function drawEditing() {
+  if (editing.isInsert) { drawInsertPreview(); return; }
   const P = editing.path;
   const col = editing.isNew ? editing.color : editing.line.color;
 
@@ -208,6 +209,50 @@ function drawEditing() {
   ctx.globalAlpha = 1;
 }
 
+/** 线段插入预览：原段两端 → 目标站（或光标）的虚线折线，安全计算不通过时整体变红 */
+function drawInsertPreview() {
+  const line = editing.line, i = editing.insertIdx;
+  const prev = line.stations[i - 1], next = line.stations[i % line.stations.length];
+  const hov = editing.hover;
+  const col = editing.invalid ? '#d64545' : line.color;
+
+  // 吸附到目标站时画到该站中心，否则中段跟着光标走
+  const mid = hov ? { x: hov.nx * W, y: hov.ny * H } : editing.cursor;
+
+  ctx.beginPath();
+  ctx.moveTo(prev.nx * W, prev.ny * H);
+  ctx.lineTo(mid.x, mid.y);
+  ctx.lineTo(next.nx * W, next.ny * H);
+  ctx.setLineDash([6, 7]);
+  ctx.strokeStyle = col;
+  ctx.globalAlpha = 0.65;
+  ctx.lineWidth = 7;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.globalAlpha = 1;
+
+  // 吸附高亮圈（非法目标也用红色圈出，让玩家看清拒绝对象）
+  if (hov) {
+    ctx.beginPath();
+    ctx.arc(hov.nx * W, hov.ny * H, 18, 0, Math.PI * 2);
+    ctx.strokeStyle = col;
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.7;
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+
+  // 光标点
+  ctx.beginPath();
+  ctx.arc(editing.cursor.x, editing.cursor.y, 5, 0, Math.PI * 2);
+  ctx.fillStyle = col;
+  ctx.globalAlpha = 0.85;
+  ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
 /* ---------------- 左上角周进度环 ---------------- */
 
 function drawPie() {
@@ -231,11 +276,20 @@ function render() {
   drawRiver();
 
   for (const line of G.lines) {
-    if (editing && editing.line === line) continue;
+    // 插入模式保留原线照常绘制（预览只叠加虚线三角），其余编辑态隐藏原线改由 drawEditing 画
+    if (editing && editing.line === line && !editing.isInsert) continue;
     drawLinePath(line.stations, line.loop, line.color);
   }
 
   if (editing) drawEditing();
+
+  // 悬停线段提示点：告知玩家此处可按住拖出插入中间站
+  if (!editing && !G.modal && !G.over && hoverSeg) {
+    ctx.beginPath();
+    ctx.arc(hoverSeg.x, hoverSeg.y, 5.5, 0, Math.PI * 2);
+    ctx.fillStyle = '#fff'; ctx.fill();
+    ctx.lineWidth = 3; ctx.strokeStyle = hoverSeg.line.color; ctx.stroke();
+  }
 
   for (const line of G.lines) for (const tr of line.trains) drawTrain(tr, line);
   for (const st of G.stations) drawStation(st);
