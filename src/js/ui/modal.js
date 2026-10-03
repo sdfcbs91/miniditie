@@ -4,7 +4,7 @@
  */
 'use strict';
 /**
- * 弹窗层：主菜单 / 城市选择 / 每周升级二选一 / 游戏结束
+ * 弹窗层：主菜单 / 城市选择 / 升级三选一 / 游戏结束
  * 弹窗期间 G.modal = true，主循环不再推进世界。
  *
  * 入口流程：进游戏先弹主菜单（无限模式 / 城市地图）→ 选城市地图则进选图页，
@@ -14,7 +14,7 @@
 /* ← 依赖 ../core/state.js （提供 G, reset） */
 /* ← 依赖 ../core/storage.js （提供 prog, bestOf, recordBest, isMapUnlocked） */
 /* ← 依赖 ../core/audio.js （提供 AU） */
-/* ← 依赖 ../config.js （提供 PALETTE, SHAPE_NAMES） */
+/* ← 依赖 ../config.js （提供 PALETTE, SHAPE_NAMES, UPGRADE_OPTS） */
 /* ← 依赖 ../utils.js （提供 el） */
 /* ← 依赖 ../world/maps.js （提供 MAPS） */
 /* ← 依赖 ../input/pointer.js （提供 clearEditing） */
@@ -144,7 +144,7 @@ function showMapSelect() {
   });
 }
 
-/* ---------------- 每周升级 ---------------- */
+/* ---------------- 升级选择（节奏由 config.js 的 UPGRADE_EVERY / UPGRADE_OPTS 控制） ---------------- */
 
 /** 升级项定义：ok() 判断是否还能选，apply() 立即生效 */
 const UPGRADES = [
@@ -155,12 +155,12 @@ const UPGRADES = [
   { id: 'cap', icon: 'arrow-right-left', color: '#9b59b6', name: '站台扩建', desc: '所有车站的容纳上限 +2', ok: () => true, apply: () => { G.capBonus += 2; G.stations.forEach(s => s.cap += 2); } }
 ];
 
-/** 每周结束弹窗：从可用升级里随机抽 2 个二选一 */
-function openWeek(week) {
+/** 升级弹窗：从可用升级里随机抽 UPGRADE_OPTS 个 N 选一 */
+function openUpgrade(round) {
   clearEditing();
   G.modal = true;
 
-  const opts = UPGRADES.filter(u => u.ok()).sort(() => Math.random() - 0.5).slice(0, 2);
+  const opts = UPGRADES.filter(u => u.ok()).sort(() => Math.random() - 0.5).slice(0, UPGRADE_OPTS);
   let btns = '';
   opts.forEach((u, i) => {
     btns += '<button class="optbtn" data-i="' + i + '">'
@@ -172,7 +172,7 @@ function openWeek(week) {
 
   el('modal').innerHTML =
     '<div class="modal-mask"><div class="card pop w-[min(92vw,430px)] p-7 text-center">'
-    + '<div class="text-[11px] font-black opacity-40 tracking-[0.3em]">第 ' + week + ' 周结束</div>'
+    + '<div class="text-[11px] font-black opacity-40 tracking-[0.3em]">第 ' + round + ' 次升级</div>'
     + '<div class="text-2xl font-black mt-1">城市在扩张 — 选择升级</div>'
     + '<div class="mt-6 space-y-3">' + btns + '</div>'
     + '</div></div>';

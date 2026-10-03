@@ -11,7 +11,7 @@
 /* ← 依赖 ../core/state.js （提供 G） */
 /* ← 依赖 ../core/storage.js （提供 unlockTo） */
 /* ← 依赖 ../core/audio.js （提供 AU） */
-/* ← 依赖 ../config.js （提供 DAY_LEN, OC_LIMIT, MAX_STATIONS） */
+/* ← 依赖 ../config.js （提供 DAY_LEN, OC_LIMIT, MAX_STATIONS, UPGRADE_EVERY） */
 /* ← 依赖 ../utils.js （提供 rand） */
 /* ← 依赖 ./maps.js （提供 MAPS） */
 /* ← 依赖 ./station.js （提供 spawnStation, spawnPassenger） */
@@ -20,7 +20,7 @@
 /* ← 依赖 ./floaters.js （提供 updateFloaters） */
 /* ← 依赖 ../input/pointer.js （提供 editing） */
 /* ← 依赖 ../ui/hud.js （提供 hintOnce, updateHUD, toast） */
-/* ← 依赖 ../ui/modal.js （提供 openWeek, gameOver） */
+/* ← 依赖 ../ui/modal.js （提供 openUpgrade, gameOver） */
 
 /** 主推进函数；返回 false 表示本帧游戏已结束 */
 function update(dt) {
@@ -87,8 +87,10 @@ function update(dt) {
   return true;
 }
 
-/** 跨天：刷新 HUD；每满 7 天弹一次升级选择 */
+/** 跨天：刷新 HUD；每 UPGRADE_EVERY 天弹一次升级选择（第 4 / 7 / 10 … 天） */
 function onDay() {
   updateHUD();
-  if (G.day > 1 && (G.day - 1) % 7 === 0) openWeek(Math.floor((G.day - 1) / 7));
+  if (G.day > 1 && (G.day - 1) % UPGRADE_EVERY === 0) {
+    openUpgrade(Math.floor((G.day - 1) / UPGRADE_EVERY));
+  }
 }

@@ -20,6 +20,10 @@ const TRAIN_SPEED = 92;   // 列车速度（像素/秒）
 const OC_LIMIT   = 38;    // 车站持续超载到关闭所需时间（秒）
 const BASE_CAP   = 6;     // 车站基础容纳人数
 
+/* ---- 升级节奏 ---- */
+const UPGRADE_EVERY = 3; // 每 N 天给一次升级选择：触发日为第 4 / 7 / 10 … 天（(day-1) % N === 0 且 day > 1）
+const UPGRADE_OPTS  = 3; // 每次从可用升级项里随机抽几个（当前为三选一；可用项不足时按实际数量给）
+
 /* ---- 数量上限 ---- */
 const MAX_TRAINS        = 4;  // 单条线路最多列车数
 const MAX_CARR_PER_TRAIN = 3; // 单列车最多挂车厢数
