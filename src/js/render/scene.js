@@ -132,11 +132,20 @@ function drawTrain(tr, line) {
   const len = Math.max(30, (cols - 1) * 7.5 + 15);  // 默认 6 座 → 30px；墨尔本 9 座 → 45px
   const gapX = 7.5;
   const gapY = rows > 1 ? 7.2 : 0;                                // > 图标直径 6，上下排不贴
-  const pitch = len - 5;                       // 车厢节距：保持原来的 5px 重叠感
+  const pitch = len + 4;                       // 车厢节距：比车长多 4px，留出连接缝
 
   // 从最后一节车厢往前画，保证车头盖在最上层
   for (let k = tr.carriages; k >= 0; k--) {
     const p = pointAt(path, tr.d - sign * k * pitch);
+
+    // 车厢连接圆点：画在两节车厢缝隙正中（按路径弧长取点，拐弯时也对齐）
+    if (k > 0) {
+      const mid = pointAt(path, tr.d - sign * (k - 0.5) * pitch);
+      ctx.beginPath();
+      ctx.arc(mid.x, mid.y, 2.2, 0, Math.PI * 2);
+      ctx.fillStyle = INK; ctx.fill();
+    }
+
     ctx.save();
     ctx.translate(p.x, p.y);
     ctx.rotate(p.ang);
