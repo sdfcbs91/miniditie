@@ -16,6 +16,7 @@
  *   maxCarr       单列车最多车厢数（默认 MAX_CARR_PER_TRAIN 3）
  *   spawnFactor   乘客生成间隔倍率（默认 1，越小刷得越快）
  *   stationFactor 新站生成间隔倍率（默认 1）
+ *   simpleShapes  只刷基础三形（圆/三角/方），不出特殊站（前几城用，降低难度）
  * unlockNext：在这张图上单局送达 N 人 → 解锁下一张图（最后一张为 null）
  *
  * 河流用 mkRiverX / mkRiverY 构造（world/river.js），坐标全部归一化，resize 不跑偏。
@@ -30,19 +31,19 @@ const MAPS = [
   {
     id: 'london', name: '伦敦', en: 'LONDON', river: '泰晤士河',
     blurb: '蜿蜒大河穿城而过，规则最标准，适合上手',
-    unlockNext: 100,
+    unlockNext: 100, simpleShapes: true,
     rivers: [mkRiverX(0.50, [[0.0016, 0.3, 0.16], [0.0042, 2.1, 0.045]], 0.050)]
   },
   {
     id: 'paris', name: '巴黎', en: 'PARIS', river: '塞纳河',
     blurb: '河道窄而多弯，开局隧道只有 2 条，跨河要精打细算',
-    unlockNext: 140, tunnels: 2,
+    unlockNext: 140, tunnels: 2, simpleShapes: true,
     rivers: [mkRiverX(0.46, [[0.0028, 1.2, 0.095], [0.006, 4.0, 0.020]], 0.032)]
   },
   {
     id: 'newyork', name: '纽约', en: 'NEW YORK', river: '哈德逊河 × 东河',
     blurb: '两条竖河夹出曼哈顿长岛，开局隧道 5 条',
-    unlockNext: 180, tunnels: 5,
+    unlockNext: 180, tunnels: 5, simpleShapes: true,
     rivers: [
       mkRiverY(0.26, [[0.0022, 0.8, 0.030]], 0.045),   // 哈德逊河（西）
       mkRiverY(0.56, [[0.0026, 2.6, 0.035]], 0.040)    // 东河（东）

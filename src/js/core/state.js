@@ -52,6 +52,7 @@ function reset(mapId) {
     mapIdx: def ? MAPS.indexOf(def) : -1, // 在 MAPS 里的下标（-1 = 无限模式）
     mapName: def ? def.name : '无限模式',
     unlockedThisRun: null,                // 本局达标后新解锁的城市名（结算页展示用）
+    simpleShapes: def ? !!def.simpleShapes : false, // 只刷基础三形（前几城降难度）
 
     /* ---- 地图参数覆写：缺省回落到 config.js 全局值 ---- */
     trainSpeed: (def && def.trainSpeed) || TRAIN_SPEED,

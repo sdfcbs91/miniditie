@@ -24,15 +24,21 @@
 function spawnStation(force) {
   let shape = force;
   if (!shape) {
-    // 特殊站全场唯一：先统计已占用的特殊形状，只在剩下的里面抽
-    const usedSpecial = new Set(G.stations.filter(s => s.special).map(s => s.shape));
-    const r = Math.random();
-    if (r < 0.38) shape = 'circle';
-    else if (r < 0.72) shape = 'triangle';
-    else if (r < 0.88) shape = 'square';
-    else {
-      const avail = SHAPES_SPECIAL.filter(s => !usedSpecial.has(s));
-      shape = avail.length ? avail[Math.floor(Math.random() * avail.length)] : 'circle';
+    if (G.simpleShapes) {
+      // 简单图（前几城）：只抽基础三形，不出特殊站
+      const r = Math.random();
+      shape = r < 0.40 ? 'circle' : (r < 0.74 ? 'triangle' : 'square');
+    } else {
+      // 特殊站全场唯一：先统计已占用的特殊形状，只在剩下的里面抽
+      const usedSpecial = new Set(G.stations.filter(s => s.special).map(s => s.shape));
+      const r = Math.random();
+      if (r < 0.38) shape = 'circle';
+      else if (r < 0.72) shape = 'triangle';
+      else if (r < 0.88) shape = 'square';
+      else {
+        const avail = SHAPES_SPECIAL.filter(s => !usedSpecial.has(s));
+        shape = avail.length ? avail[Math.floor(Math.random() * avail.length)] : 'circle';
+      }
     }
   }
 
