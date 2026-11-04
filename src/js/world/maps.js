@@ -4,7 +4,7 @@
  */
 'use strict';
 /**
- * 城市地图定义：官方《Mini Metro》初版 6 城 + 无限模式的默认河流
+ * 城市地图定义：经典 6 城与广佛都市圈
  *
  * 每张图 = 专属河流布局 + 少量参数覆写 + 解锁阈值。
  * 覆写字段（缺省即用 config.js 的全局默认值）：
@@ -23,9 +23,6 @@
  */
 
 /* ← 依赖 ./river.js （提供 mkRiverX, mkRiverY） */
-
-/** 无限模式的默认河流：横贯屏幕的双正弦带（即重构前唯一的河） */
-const ENDLESS_RIVERS = [mkRiverX(0.52, [[0.0035, 1.7, 0.055], [0.0011, 0.4, 0.035]], 0.042, 26, 38)];
 
 const MAPS = [
   {
@@ -66,6 +63,12 @@ const MAPS = [
     blurb: '海港宽阔、乘客蜂拥：刷客快 25%，列车也快',
     unlockNext: null, trainSpeed: 110, spawnFactor: 0.8, tunnels: 4,
     rivers: [mkRiverX(0.50, [[0.0009, 0.6, 0.05]], 0.085)]
+  },
+  {
+    id: 'guangfo', name: '广佛都市圈', en: 'GUANGZHOU · FOSHAN', river: '珠江水系 · 主要河道',
+    blurb: '广州 11 区 × 佛山 5 区，在真实区界之间规划跨城线路',
+    unlockNext: null, free: true, tunnels: 4, locos: 4, lines: 4,
+    rivers: []
   }
 ];
 

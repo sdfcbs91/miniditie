@@ -53,7 +53,7 @@ function initPointer(canvas) {
     }
 
     // 2) 命中车站 → 拉新线 / 改已有线端点
-    const st = stationAt(p, 17);
+    const st = stationAt(p, 24);
     if (st) {
       if (G.lines.length < G.unlockedLines) {
         // 还有空位 → 从这座站开始拉一条新线
@@ -81,7 +81,7 @@ function initPointer(canvas) {
 
     // 未拖拽：只更新悬停态与鼠标指针样式
     if (!editing) {
-      hoverStation = stationAt(p, 16);
+      hoverStation = stationAt(p, 24);
       hoverHandle = null;
       if (!hoverStation) {
         for (const line of G.lines) {
@@ -104,7 +104,7 @@ function initPointer(canvas) {
     // 插入模式单独走一套吸附 / 校验逻辑
     if (editing.isInsert) { updateInsert(p); return; }
 
-    editing.hover = stationAt(p, 20);
+    editing.hover = stationAt(p, 26);
 
     const P = editing.path, hov = editing.hover;
     if (editing.loopClosed || !hov) return;
@@ -112,11 +112,17 @@ function initPointer(canvas) {
     const last = P[P.length - 1];
     if (hov === last) return;
     if (P.length >= 2 && hov === P[P.length - 2]) { P.pop(); AU.tick(); return; }  // 回退一步
-    if (hov === P[0] && P.length >= 3) { editing.loopClosed = true; AU.chime(); return; } // 首尾闭合 → 环线
+    if (hov === P[0] && P.length >= 3) {
+      if (segCrossCount(last, hov) > tunnelsLeft()) {
+        if (editing.deny <= 0) { toast('隧道不足！无法跨河修建'); AU.deny(); }
+        editing.deny = 0.6; return;
+      }
+      editing.loopClosed = true; AU.chime(); return;
+    } // 首尾闭合 → 环线
     if (P.includes(hov)) return;
 
     // 跨河需要隧道，不够就拒绝（deny 用于红色虚线反馈 + 节流提示）
-    if (segCrosses(last, hov) && tunnelsLeft() <= 0) {
+    if (segCrossCount(last, hov) > tunnelsLeft()) {
       if (editing.deny <= 0) { toast('隧道不足！无法跨河修建'); AU.deny(); }
       editing.deny = 0.6;
       return;
@@ -204,7 +210,7 @@ function startEdit(line, which, p) {
 /** 插入模式实时更新：吸附目标站 + 安全计算（端点/重复排除 + 隧道库存校验） */
 function updateInsert(p) {
   editing.cursor = p;
-  const st = stationAt(p, 20);
+  const st = stationAt(p, 26);
   editing.hover = st;
   editing.invalid = false;
   if (!st) return;

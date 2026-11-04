@@ -9,9 +9,15 @@ body {
   overscroll-behavior: none;
 }
 
-#game {
+#mapBackground, #waterThreeSurface, #waterSurface, #metroThreeSurface, #game, #stationThreeSurface {
   position: fixed;
   inset: 0;
   display: block;
   touch-action: none;
 }
+#mapBackground { z-index: 0; pointer-events: none; }
+#waterThreeSurface, #waterSurface { z-index: 1; pointer-events: none; }
+#waterThreeSurface[hidden], #waterSurface[hidden], #metroThreeSurface[hidden], #stationThreeSurface[hidden] { display: none; }
+#metroThreeSurface { z-index: 2; pointer-events: none; }
+#game { z-index: 3; }
+#stationThreeSurface { z-index: 4; pointer-events: none; }

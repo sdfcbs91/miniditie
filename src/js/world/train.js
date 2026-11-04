@@ -22,7 +22,7 @@
 function stepTrain(tr, line, path, dt) {
   if (tr.dwell > 0) { tr.dwell -= dt; return; }
 
-  let rem = G.trainSpeed * dt;
+  let rem = G.trainSpeed * dt * (G.mapId === 'endless' && G.camera ? earthScaleFactor() : 1);
   const n = line.stations.length;
   let guard = 8; // 防死循环：极端小 dt 下最多推进 8 段
 
@@ -59,22 +59,54 @@ function stepTrain(tr, line, path, dt) {
   }
 }
 
-/** 到站：先下客（目的地匹配），再上客（目的地在本线服务范围内且未超载） */
-function arriveAt(tr, line, st) {
-  let got = 0;
-  tr.passengers = tr.passengers.filter(p => { if (p.shape === st.shape) { got++; return false; } return true; });
-
-  if (got) {
-    G.delivered += got;
-    AU.deliver();
-    floater(st.nx * W, st.ny * H - 22, '+' + got, '#2e7d46');
-    el('delivered').textContent = G.delivered;
+// 线路间按共享车站建图；距目标形状最少还需几次换乘。断网和无路线返回 Infinity。
+function passengerLineDistances(shape) {
+  const lines=G.lines, distances=new Map(), queue=[];
+  for (const line of lines) if (line.stations.some(st=>st.shape===shape)) {
+    distances.set(line,0); queue.push(line);
   }
+  for (let i=0;i<queue.length;i++) {
+    const current=queue[i], nextDistance=distances.get(current)+1;
+    for (const other of lines) {
+      if (!distances.has(other) && other.stations.some(st=>current.stations.includes(st))) {
+        distances.set(other,nextDistance); queue.push(other);
+      }
+    }
+  }
+  return distances;
+}
 
-  const cap = capOf(tr);
-  for (let i = 0; i < st.passengers.length && tr.passengers.length < cap;) {
-    const p = st.passengers[i];
-    if (line.served.has(p.shape)) { tr.passengers.push(p); st.passengers.splice(i, 1); }
-    else i++;
+/** 到站：到达目的地才计数；换乘站允许乘客转乘剩余换乘次数更少的线路。 */
+function arriveAt(tr, line, st) {
+  let got=0;
+  const routeCache=new Map();
+  const distancesFor=shape => {
+    if (!routeCache.has(shape)) routeCache.set(shape,passengerLineDistances(shape));
+    return routeCache.get(shape);
+  };
+  const bestAtStation=(shape, distances) => {
+    let best=Infinity;
+    for (const candidate of G.lines) if (candidate.stations.includes(st)) best=Math.min(best,distances.get(candidate) ?? Infinity);
+    return best;
+  };
+  tr.passengers=tr.passengers.filter(p => {
+    if (p.shape===st.shape) { got++; return false; }
+    const distances=distancesFor(p.shape), current=distances.get(line) ?? Infinity;
+    // 线路变更后乘客也可在可换乘的站点寻找新路线；不能换乘时留在车上。
+    if (bestAtStation(p.shape,distances)<current) { st.passengers.push(p); return false; }
+    return true;
+  });
+  if (got) {
+    G.delivered+=got; AU.deliver();
+    floater(st.nx*W,st.ny*H-22,'+'+got,'#2e7d46');
+    el('delivered').textContent=G.delivered;
+  }
+  const cap=capOf(tr);
+  for (let i=0;i<st.passengers.length && tr.passengers.length<cap;) {
+    const p=st.passengers[i], distances=distancesFor(p.shape), current=distances.get(line) ?? Infinity;
+    // 仅选择可达且不比本站的其他路线更差的线路，避免在换乘站反复上下同一趟车。
+    if (p.shape!==st.shape && Number.isFinite(current) && current===bestAtStation(p.shape,distances)) {
+      tr.passengers.push(p); st.passengers.splice(i,1);
+    } else i++;
   }
 }

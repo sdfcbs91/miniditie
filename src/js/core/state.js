@@ -9,14 +9,14 @@
  * G 是全局词法作用域里的一个 `let` 绑定，所有脚本按名字直接读，不缓存在本地变量里，
  * reset() 重新赋值时，其它模块下一次读到的就是新对象（等价于 ESM 的 live binding）。
  *
- * reset(mapId)：按地图初始化。mapId 省略 / 'endless' → 无限模式（默认河流）；
+ * reset(mapId)：按地图初始化。mapId 省略 / 'endless' → 八市无限模式；
  * 否则取 maps.js 里对应城市的河流布局与参数覆写（速度/运力/隧道/刷客倍率等）。
  */
 
 /* ← 依赖 ../utils.js （提供 el） */
 /* ← 依赖 ../config.js （提供 TRAIN_SPEED, BASE_CAP, MAX_CARR_PER_TRAIN） */
 /* ← 依赖 ../world/river.js （提供 setRiverLayout） */
-/* ← 依赖 ../world/maps.js （提供 MAPS, ENDLESS_RIVERS, mapById） */
+/* ← 依赖 ../world/maps.js （提供 MAPS, mapById） */
 /* ← 依赖 ../world/station.js （提供 spawnStation） */
 /* ← 依赖 ../ui/hud.js （提供 updateHUD, renderChips） */
 /* ← 依赖 ../ui/controls.js （提供 setPauseIcon） */
@@ -67,8 +67,17 @@ function reset(mapId) {
     capBonus: 0       // 车站容量额外加成
   };
 
-  // 切换河流布局（城市图用专属河流，无限模式用默认正弦河）
-  setRiverLayout(def ? def.rivers : ENDLESS_RIVERS);
+  // 无限模式开局聚焦海珠近景；可随时缩放回八市全域。
+  G.camera = G.mapId === 'endless' ? earthInitialCamera() : null;
+  el('earthTools').hidden = G.mapId !== 'endless';
+
+  // 广佛地图及无限模式显示行政区目录；切换地图时关闭目录。
+  el('guangfoLegend').hidden = G.mapId !== 'guangfo' && G.mapId !== 'endless';
+  el('guangfoLegend').open = false;
+  updateRegionLegend();
+
+  // 切换河流布局（城市图用专属河流；无限模式不使用屏幕坐标生成的虚构河道）
+  setRiverLayout(def ? def.rivers : []);
 
   // 开局送三个基础形状，保证第一条线能立刻开出来
   spawnStation('circle');
@@ -79,7 +88,7 @@ function reset(mapId) {
   renderChips();
 
   const h = el('hint');
-  h.firstElementChild.textContent = '按住车站并拖拽到另一座车站，开通第一条线路';
+  h.firstElementChild.textContent = G.mapId === 'endless' ? '拖拽车站建线 · 空白处移动地图 · 滚轮缩放' : '按住车站并拖拽到另一座车站，开通第一条线路';
   h.style.opacity = 1;
   el('btnSpeed').textContent = '1×';
   setPauseIcon();

@@ -13,7 +13,7 @@
  * 隐私模式 / 部分 file:// 环境下可能抛错，统一 try/catch 退化为内存存档。
  */
 
-/* （无跨文件依赖，纯本地存取） */
+/* ← 依赖 ../world/maps.js （isMapUnlocked 读取免费开放的地图配置） */
 
 const PROG_KEY = 'minimetro.progress.v1';
 
@@ -45,7 +45,7 @@ function recordBest(mapId, delivered) {
 
 /** 第 idx 张城市图是否已解锁（0 起，第一张恒解锁） */
 function isMapUnlocked(idx) {
-  return idx < prog().unlocked;
+  return !!(MAPS[idx] && MAPS[idx].free) || idx < prog().unlocked;
 }
 
 /** 把解锁进度推进到「前 n 张已解锁」（只增不减，由达标逻辑调用） */

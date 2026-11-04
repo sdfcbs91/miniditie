@@ -62,7 +62,10 @@ function updateMeta(line) {
 function addTrain(line) {
   if (G.spareLocos <= 0 || line.trains.length >= MAX_TRAINS) return false;
   G.spareLocos--;
-  line.trains.push({ idx: 0, d: 0, dir: 1, dwell: 0, passengers: [], carriages: 0 });
+  const train={ idx: 0, d: 0, dir: 1, dwell: 0, passengers: [], carriages: 0 };
+  line.trains.push(train);
+  // 新列车从首站发车，也应立即接走首站可达乘客，而不是空驶到下一站。
+  if (line.stations.length) arriveAt(train,line,line.stations[0]);
   return true;
 }
 
@@ -94,6 +97,8 @@ function deleteLine(line) {
     for (const pg of tr.passengers) {
       let best = null, bd = 1e9;
       for (const s of G.stations) {
+        // 不把尚未送达的人放到同形目的站，否则无法再上车也不会计数。
+        if (s.shape === pg.shape) continue;
         const d = Math.hypot(s.nx * W - p.x, s.ny * H - p.y);
         if (d < bd) { bd = d; best = s; }
       }

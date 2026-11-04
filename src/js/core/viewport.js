@@ -12,21 +12,27 @@
 
 let W = 0;      // 逻辑宽（CSS 像素）
 let H = 0;      // 逻辑高（CSS 像素）
+let viewportRevision = 0; // 即使尺寸未变，resize 也会清空底图画布
 let DPR = 1;    // 设备像素比（上限 2）
 let ctx = null; // CanvasRenderingContext2D
 
 let canvasEl = null;
+let mapBackgroundCanvas = null;
+let mapBackgroundCtx = null;
 
 /** 绑定画布并监听窗口尺寸变化 */
 function initViewport(canvas) {
   canvasEl = canvas;
   ctx = canvas.getContext('2d');
+  mapBackgroundCanvas = document.getElementById('mapBackground');
+  mapBackgroundCtx = mapBackgroundCanvas && mapBackgroundCanvas.getContext('2d');
   resize();
   window.addEventListener('resize', resize);
 }
 
 /** 重算尺寸：按 DPR 放大位图，再用 setTransform 把绘制坐标拉回 CSS 像素 */
 function resize() {
+  viewportRevision++;
   DPR = Math.min(window.devicePixelRatio || 1, 2);
   W = window.innerWidth;
   H = window.innerHeight;
@@ -35,6 +41,11 @@ function resize() {
   canvasEl.style.width  = W + 'px';
   canvasEl.style.height = H + 'px';
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  if (mapBackgroundCtx) {
+    mapBackgroundCanvas.width = W * DPR; mapBackgroundCanvas.height = H * DPR;
+    mapBackgroundCanvas.style.width = W + 'px'; mapBackgroundCanvas.style.height = H + 'px';
+    mapBackgroundCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
 }
 
 /** 拿到原始 canvas 元素（绑定事件用） */

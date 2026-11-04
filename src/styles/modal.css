@@ -120,3 +120,9 @@
   justify-content: center;
   gap: 4px;
 }
+
+/* 广佛区域图入口与七张地图的滚动容器 */
+.guangfo-entry { background: #edf2e8; border-color: #bdcebb; }
+.guangfo-badge { display: inline-block; vertical-align: middle; margin-left: 5px; padding: 3px 6px; border-radius: 5px; background: #d4e3d3; color: #46634e; font-size: 10px; line-height: 1; }
+.map-select { max-height: calc(100vh - 32px); overflow-y: auto; }
+.modal-mask > .card { max-height: calc(100vh - 32px); overflow-y: auto; }

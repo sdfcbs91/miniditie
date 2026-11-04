@@ -21,11 +21,18 @@
 const canvas = document.getElementById('game');
 
 initViewport(canvas);
+// viewport 的 resize 监听先更新画布尺寸，再把广佛站点投影到新尺寸。
+window.addEventListener('resize', () => { reprojectGuangfoStations(); reprojectEarthStations(); });
 initPointer(canvas);
+initEarthControls(canvas);
 initHud();
 initControls();
 
 showMainMenu();
+// 预览专用入口：直接展示广佛近景；普通离线打开仍进入主菜单。
+if (new URLSearchParams(window.location.search).get('preview') === 'guangfo') {
+  startGame('endless');
+}
 icons();
 
 startLoop();

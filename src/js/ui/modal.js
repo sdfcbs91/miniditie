@@ -7,7 +7,7 @@
  * 弹窗层：主菜单 / 城市选择 / 升级三选一 / 游戏结束
  * 弹窗期间 G.modal = true，主循环不再推进世界。
  *
- * 入口流程：进游戏先弹主菜单（无限模式 / 城市地图）→ 选城市地图则进选图页，
+ * 入口流程：主菜单可直接进入广佛或无限模式，也可打开城市选图页，
  * 官方 6 城逐张解锁（上一城单局送达达标即解锁下一城，进度存 localStorage）。
  */
 
@@ -41,19 +41,19 @@ function startGame(mapId) {
   hideHintAfter(14000);
   if (G.mapIdx >= 0) {
     const def = MAPS[G.mapIdx];
-    toast(def.name + ' · ' + def.river + (def.unlockNext
+    toast(def.name + ' · ' + def.river + (def.free ? '：跨城规划，即刻开局' : def.unlockNext
       ? '：送达 ' + def.unlockNext + ' 人解锁下一城'
       : '：最终挑战，尽情发挥'));
   }
 }
 
-/** 主菜单：无限模式 / 城市地图 二选一（每次进游戏都出现） */
+/** 主菜单：无限模式、广佛与城市选图（每次进游戏都出现） */
 function showMainMenu() {
-  reset(); // 背景回到无限模式的默认河流；G.modal 随之置 true
+  reset(); // 背景回到广佛无限模式；G.modal 随之置 true
   clearEditing();
 
   const eBest = bestOf('endless');
-  const unlockedCount = Math.min(prog().unlocked, MAPS.length);
+  const unlockedCount = Math.min(prog().unlocked, MAPS.filter(m => !m.free).length);
 
   el('modal').innerHTML =
     '<div class="modal-mask"><div class="card pop w-[min(94vw,540px)] p-8 md:p-10 text-center">'
@@ -70,14 +70,20 @@ function showMainMenu() {
     + '<button id="btnEndless" class="menubtn">'
     + '<span class="menubic" style="background:#dc493a"><i data-lucide="infinity" class="w-5 h-5"></i></span>'
     + '<span class="flex-1"><span class="block font-black text-lg">无限模式</span>'
-    + '<span class="block text-xs opacity-60 font-bold mt-0.5">随机河流 · 无尽挑战'
+    + '<span class="block text-xs opacity-60 font-bold mt-0.5">广州、佛山及周边六市 · 自由缩放与平移'
     + (eBest ? ' · 历史最佳 ' + eBest + ' 人' : '') + '</span></span>'
+    + '<i data-lucide="chevron-right" class="w-5 h-5 opacity-40"></i>'
+    + '</button>'
+    + '<button id="btnGuangfo" class="menubtn guangfo-entry">'
+    + '<span class="menubic" style="background:#647d69"><i data-lucide="map-pinned" class="w-5 h-5"></i></span>'
+    + '<span class="flex-1"><span class="block font-black text-lg">广佛都市圈 <span class="guangfo-badge">全新地图</span></span>'
+    + '<span class="block text-xs opacity-60 font-bold mt-0.5">广州 × 佛山 · 16 个行政区 · 无需解锁</span></span>'
     + '<i data-lucide="chevron-right" class="w-5 h-5 opacity-40"></i>'
     + '</button>'
     + '<button id="btnMaps" class="menubtn">'
     + '<span class="menubic" style="background:#2d8fd5"><i data-lucide="map" class="w-5 h-5"></i></span>'
     + '<span class="flex-1"><span class="block font-black text-lg">城市地图</span>'
-    + '<span class="block text-xs opacity-60 font-bold mt-0.5">官方 6 城 · 逐城解锁（已解锁 ' + unlockedCount + '/' + MAPS.length + '）</span></span>'
+    + '<span class="block text-xs opacity-60 font-bold mt-0.5">官方 6 城 · 逐城解锁（已解锁 ' + unlockedCount + '/' + MAPS.filter(m => !m.free).length + '）</span></span>'
     + '<i data-lucide="chevron-right" class="w-5 h-5 opacity-40"></i>'
     + '</button>'
     + '</div>'
@@ -86,10 +92,11 @@ function showMainMenu() {
 
   icons();
   el('btnEndless').onclick = () => startGame('endless');
+  el('btnGuangfo').onclick = () => startGame('guangfo');
   el('btnMaps').onclick = () => { AU.tick(); showMapSelect(); };
 }
 
-/** 城市选择：6 张卡片，未解锁的置灰并显示解锁条件 */
+/** 城市选择：经典 6 城及免费广佛图，未解锁的置灰并显示解锁条件 */
 function showMapSelect() {
   G.modal = true;
 
@@ -103,7 +110,7 @@ function showMapSelect() {
     } else {
       const b = bestOf(m.id);
       const bestTxt = b ? '最佳 ' + b + ' 人' : '';
-      const goalTxt = m.unlockNext ? '送达 ' + m.unlockNext + ' 人解锁' + MAPS[i + 1].name : '最终挑战';
+      const goalTxt = m.free ? '自由挑战 · 无需解锁' : m.unlockNext ? '送达 ' + m.unlockNext + ' 人解锁' + MAPS[i + 1].name : '最终挑战';
       foot = [bestTxt, goalTxt].filter(Boolean).join(' · ');
     }
     cards += '<button class="mapcard' + (unlocked ? '' : ' locked') + '" data-i="' + i + '">'
@@ -119,11 +126,11 @@ function showMapSelect() {
   });
 
   el('modal').innerHTML =
-    '<div class="modal-mask"><div class="card pop w-[min(96vw,720px)] p-6 md:p-8">'
+    '<div class="modal-mask"><div class="card pop map-select w-[min(96vw,720px)] p-6 md:p-8">'
     + '<div class="flex items-center gap-3 mb-5">'
     + '<button id="btnBack" class="card hbtn" title="返回主菜单"><i data-lucide="arrow-left" class="w-5 h-5"></i></button>'
     + '<div><div class="text-2xl font-black">城市地图</div>'
-    + '<div class="text-xs opacity-50 font-bold mt-0.5">官方《Mini Metro》初版 6 城 · 达标解锁下一城 · 纪录自动保存</div></div>'
+    + '<div class="text-xs opacity-50 font-bold mt-0.5">经典 6 城逐步解锁 · 广佛都市圈免费开放 · 纪录自动保存</div></div>'
     + '</div>'
     + '<div class="mapgrid">' + cards + '</div>'
     + '</div></div>';

@@ -6,6 +6,7 @@
 | 文件 | 大小 | 来源 | 版本 | 许可 |
 | --- | --- | --- | --- | --- |
 | `tailwind-browser.js` | 275 KB | `https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4` | 4.3.3 | MIT |
+| `water-three.min.js` | 810 KB | [Three.js](https://github.com/mrdoob/three.js)、[N8AO](https://github.com/N8python/n8ao)、[postprocessing](https://github.com/pmndrs/postprocessing) | 0.160.1 / 1.10.3 / 6.35.6 | Three.js MIT；N8AO 包含的 LICENSE 为 CC0 1.0；postprocessing Zlib |
 | `lucide.min.js` | 434 KB | `https://unpkg.com/lucide@latest/dist/umd/lucide.min.js` | 1.49.0 | ISC |
 | `nunito.css` | 181 KB | `https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap` | v32 | OFL-1.1 |
 | `fonts/*.woff2` | 137 KB（5 个） | `https://fonts.gstatic.com/s/nunito/v32/...` | v32 | OFL-1.1 |
@@ -25,6 +26,9 @@
   不内联的话双击打开时字体会静默回退（文字能显示，但字体是错的）。
   中文字符不在 Nunito 覆盖范围内，会回退到 `system-ui`，这是预期行为。
 - `fonts/*.woff2` 是字体源码备份，运行时**不会再被请求**（`nunito.css` 已内联），可安全删除。
+
+- **Three.js / N8AO**：本地 IIFE 预构建包包含 Three.js、CSM、EffectComposer 和 N8AOPass，以经典脚本加载，支持 `file://`。许可证原文见 `licenses/`。N8AO 1.10.3 的 npm 元数据声明 ISC，但其包内 `LICENSE` 文件为 CC0 1.0；此处保留发布包中的原文。
+- 如需维护重建，安装 Node/npm 后运行 `scripts/build-water-vendor.sh`（固定上述版本及 esbuild 0.25.12，重建时需联网）；正常使用不需要构建或联网。
 
 ## 重新下载
 

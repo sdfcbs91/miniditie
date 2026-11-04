@@ -9,16 +9,23 @@
 <link rel="stylesheet" href="./vendor/nunito.css">
 <script src="./vendor/tailwind-browser.js"></script>
 <script src="./vendor/lucide.min.js"></script>
+<script src="./vendor/water-three.min.js?v=20261104-region-14"></script>
 
+<!-- 本地应用资源带版本号，避免预览复用旧版脚本或样式。 -->
 <!-- 本地样式 -->
-<link rel="stylesheet" href="./src/styles/base.css">
-<link rel="stylesheet" href="./src/styles/hud.css">
-<link rel="stylesheet" href="./src/styles/modal.css">
+<link rel="stylesheet" href="./src/styles/base.css?v=20261104-region-14">
+<link rel="stylesheet" href="./src/styles/hud.css?v=20261104-region-14">
+<link rel="stylesheet" href="./src/styles/modal.css?v=20261104-region-14">
 </head>
 <body>
 
-<!-- 主画布：所有游戏内容都在这张 Canvas 上绘制 -->
+<!-- 底图 / WebGL 水面 / 三维线路 / 交互网络 / 三维站点分层，指针事件仍由主画布处理。 -->
+<canvas id="mapBackground" aria-hidden="true"></canvas>
+<canvas id="waterThreeSurface" aria-hidden="true" hidden></canvas>
+<canvas id="waterSurface" aria-hidden="true" hidden></canvas>
+<canvas id="metroThreeSurface" aria-hidden="true" hidden></canvas>
 <canvas id="game"></canvas>
+<canvas id="stationThreeSurface" aria-hidden="true" hidden></canvas>
 
 <!-- 左上角：日期 / 周 / 运送量 -->
 <div class="fixed top-3 left-3 z-20 pointer-events-none">
@@ -42,6 +49,25 @@
   <button id="btnSpeed" class="card hbtn font-black text-sm" title="加速（F）">1×</button>
   <button id="btnMute" class="card hbtn" title="声音（M）"><i data-lucide="volume-2" class="w-5 h-5"></i></button>
 </div>
+
+<!-- 无限模式地图导航：移动地图时不改变站点的地理位置 -->
+<div id="earthTools" class="earth-tools" hidden aria-label="地图导航">
+  <button id="earthZoomIn" title="放大地图" aria-label="放大地图">＋</button>
+  <button id="earthZoomOut" title="缩小地图" aria-label="缩小地图">－</button>
+  <button id="earthClose" title="返回海珠近景" aria-label="返回海珠近景">近景</button>
+  <button id="waterQuality" aria-pressed="false" title="切换增强水效（N8AO 与级联阴影）" aria-label="切换增强水效">水效+</button>
+  <button id="earthHome" title="返回八市全图" aria-label="返回八市全图">全图</button>
+</div>
+
+<!-- 广佛地图的可展开区县目录；不拦截底图的其他区域 -->
+<details id="guangfoLegend" class="guangfo-legend" hidden>
+  <summary>八市地区 <span>查看目录</span></summary>
+  <div class="guangfo-legend-body">
+    <strong>广州 · 11 区</strong><p class="district-list"><button type="button" data-district="荔湾区">荔湾</button><button type="button" data-district="越秀区">越秀</button><button type="button" data-district="海珠区">海珠</button><button type="button" data-district="天河区">天河</button><button type="button" data-district="白云区">白云</button><button type="button" data-district="黄埔区">黄埔</button><button type="button" data-district="番禺区">番禺</button><button type="button" data-district="花都区">花都</button><button type="button" data-district="南沙区">南沙</button><button type="button" data-district="从化区">从化</button><button type="button" data-district="增城区">增城</button></p>
+    <strong>佛山 · 5 区</strong><p class="district-list"><button type="button" data-district="禅城区">禅城</button><button type="button" data-district="南海区">南海</button><button type="button" data-district="顺德区">顺德</button><button type="button" data-district="三水区">三水</button><button type="button" data-district="高明区">高明</button></p>
+    <small>区界 © OpenStreetMap contributors / geoBoundaries · ODbL<br>点击区名定位（无限模式）<br>历史简化区界；河宽为示意</small>
+  </div>
+</details>
 
 <!-- 顶部提示 -->
 <div id="hint" class="fixed top-3 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
@@ -76,27 +102,38 @@
      要在 state.js 之前（reset 依赖 setRiverLayout 与 MAPS）；③ main.js 最后。
      模块间存在循环引用，但跨文件读取都发生在函数体内，故中段顺序可换。
      新增模块请插到合适位置，详见 README「命名与加载顺序」。 -->
-  <script src="./src/js/core/viewport.js"></script>
-  <script src="./src/js/core/storage.js"></script>
-  <script src="./src/js/world/river.js"></script>
-  <script src="./src/js/world/maps.js"></script>
-  <script src="./src/js/core/state.js"></script>
-  <script src="./src/js/utils.js"></script>
-  <script src="./src/js/config.js"></script>
-  <script src="./src/js/core/audio.js"></script>
-  <script src="./src/js/world/floaters.js"></script>
-  <script src="./src/js/world/station.js"></script>
-  <script src="./src/js/world/line.js"></script>
-  <script src="./src/js/world/train.js"></script>
-  <script src="./src/js/world/simulate.js"></script>
-  <script src="./src/js/input/pointer.js"></script>
-  <script src="./src/js/ui/hud.js"></script>
-  <script src="./src/js/ui/modal.js"></script>
-  <script src="./src/js/ui/controls.js"></script>
-  <script src="./src/js/render/primitives.js"></script>
-  <script src="./src/js/render/scene.js"></script>
-  <script src="./src/js/core/loop.js"></script>
-  <script src="./src/js/main.js"></script>
+  <script src="./src/js/core/viewport.js?v=20261104-region-14"></script>
+  <script src="./src/js/core/storage.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/river.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/guangfo-data.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/region-data.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/guangfo.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/earth.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/maps.js?v=20261104-region-14"></script>
+  <script src="./src/js/core/state.js?v=20261104-region-14"></script>
+  <script src="./src/js/utils.js?v=20261104-region-14"></script>
+  <script src="./src/js/config.js?v=20261104-region-14"></script>
+  <script src="./src/js/core/audio.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/floaters.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/station.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/line.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/train.js?v=20261104-region-14"></script>
+  <script src="./src/js/world/simulate.js?v=20261104-region-14"></script>
+  <script src="./src/js/input/pointer.js?v=20261104-region-14"></script>
+  <script src="./src/js/input/earth.js?v=20261104-region-14"></script>
+  <script src="./src/js/ui/hud.js?v=20261104-region-14"></script>
+  <script src="./src/js/ui/modal.js?v=20261104-region-14"></script>
+  <script src="./src/js/ui/controls.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/primitives.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/guangfo.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/earth.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/water-three.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/water3d.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/metro3d.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/station3d.js?v=20261104-region-14"></script>
+  <script src="./src/js/render/scene.js?v=20261104-region-14"></script>
+  <script src="./src/js/core/loop.js?v=20261104-region-14"></script>
+  <script src="./src/js/main.js?v=20261104-region-14"></script>
 
 </body>
 </html>

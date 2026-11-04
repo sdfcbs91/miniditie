@@ -42,11 +42,31 @@ function spawnStation(force) {
     }
   }
 
-  for (let k = 0; k < 80; k++) { // 最多试 80 次找一个不违规的位置
-    const nx = rand(0.07, 0.93), ny = rand(0.15, 0.85);
+  const regional = G.mapId === 'guangfo' || G.mapId === 'endless';
+  // 每次先均匀选一个区再从它的外接框采样，避免中心小区永远没有站。
+  for (let k = 0; k < (regional ? 600 : 80); k++) {
+    let nx, ny, geo = null, district = null;
+    if (G.mapId === 'endless') {
+      // 在当前可操作视口内采样；50 倍近景开局时也能立即看到、连接三个站。
+      const px = rand(W * .12, W * .82);
+      const top = Math.min(H * .3, 105), bottom = Math.max(top + 1, H - Math.min(H * .25, 125));
+      const py = rand(top, bottom);
+      if (px < 175 && py < 145) continue; // 不与当前地区提示卡重叠
+      geo = earthUnproject(px, py); district = guangfoDistrictAt(geo.lon, geo.lat);
+      if (!district) continue;
+      nx = px / W; ny = py / H;
+    } else if (regional) {
+      const candidate = GUANGFO_DISTRICTS[Math.floor(Math.random() * GUANGFO_DISTRICTS.length)];
+      const bounds = candidate.bounds;
+      geo = { lon: rand(bounds[0], bounds[2]), lat: rand(bounds[1], bounds[3]) };
+      district = guangfoDistrictAt(geo.lon, geo.lat);
+      if (!district || district !== candidate) continue;
+      const p = guangfoProject(geo.lon, geo.lat);
+      nx = p.x / W; ny = p.y / H;
+    } else { nx = rand(0.07, 0.93); ny = rand(0.15, 0.85); }
     const x = nx * W, y = ny * H;
-    if (tooCloseToRiver(x, y, 34)) continue;                                     // 不能建在河里 / 太贴河岸
-    if (G.stations.some(s => Math.hypot(s.nx * W - x, s.ny * H - y) < 74)) continue; // 不能和已有站太近
+    if (tooCloseToRiver(x, y, regional ? 12 : 34)) continue;                                     // 不能建在河里 / 太贴河岸
+    if (G.stations.some(s => Math.hypot(s.nx * W - x, s.ny * H - y) < 74 * (G.mapId === 'endless' ? earthScaleFactor() : 1))) continue; // 不能和已有站太近
     const st = {
       id: G.nextId++,
       nx, ny, shape,
@@ -58,6 +78,7 @@ function spawnStation(force) {
       spawnT: rand(2, 5),  // 下次生成乘客倒计时
       warned: false
     };
+    if (regional) { st.gfLon = geo.lon; st.gfLat = geo.lat; st.district = district.name; }
     G.stations.push(st);
     AU.station();
     floater(x, y - 26, SHAPE_NAMES[shape] + '站', INK);
